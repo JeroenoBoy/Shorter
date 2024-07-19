@@ -10,20 +10,20 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func RunServer(datastore datastore.Datastore) error {
+func NewWebserver(jwtAuth *authentication.JWTAuthentication, datastore datastore.Datastore) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.StripSlashes)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
+	r.Use(middleware.Heartbeat("/ping"))
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.NoCache)
-		r.Use(middleware.Heartbeat("/ping"))
-		r.Use(authentication.MiddilewareProvideUser)
+		r.Use(jwtAuth.MiddilewareProvideUser)
 
 		r.Mount("/shorts", controllers.NewShortsController(datastore).Router())
 	})
 
-	return http.ListenAndServe(":3000", r)
+	return r
 }

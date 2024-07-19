@@ -1,14 +1,12 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/JeroenoBoy/Shorter/api"
 	"github.com/JeroenoBoy/Shorter/internal/authentication"
-	"github.com/JeroenoBoy/Shorter/internal/datastore"
 	"github.com/JeroenoBoy/Shorter/internal/models"
 )
 

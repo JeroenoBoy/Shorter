@@ -32,7 +32,7 @@ func WriteError(w http.ResponseWriter, err error) error {
 	if apiErr, ok := err.(apiError); ok {
 		return WriteResponse(w, apiErr.StatusCode, apiErr)
 	} else {
-		WriteError(ErrorInternalServerError)
+		WriteError(w, ErrorInternalServerError)
 		panic(err)
 	}
 }

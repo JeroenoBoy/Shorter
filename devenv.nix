@@ -4,28 +4,33 @@ let
   postgres_address = "127.0.0.1";
   postgres_port = 5432;
   postgres_database = "shorter";
-  postgres_ssl = false;
+  postgres_sslmode = "disable";
 in
 {
   cachix.enable = false;
 
   # https://devenv.sh/basics/
   env.GREET = "Shorter";
-  env.POSTGRES_ADDRESS = postgres_address;
-  env.POSTGRES_PORT = postgres_port;
-  env.POSTGRES_DATABASE = postgres_database;
-  env.POSTGRES_USER = "root";
-  env.POSTGRES_USESSL = postgres_ssl;
+  env.SHORTER_POSTGRES_ADDRESS = postgres_address;
+  env.SHORTER_POSTGRES_PORT = postgres_port;
+  env.SHORTER_POSTGRES_DATABASE = postgres_database;
+  env.SHORTER_POSTGRES_SSLMODE = postgres_sslmode;
 
-  # https://devenv.sh/packages/
   packages = with pkgs; [ templ ];
 
-  # https://devenv.sh/scripts/
-  scripts.hello.exec = "echo hello from $GREET";
+  scripts.hello.exec = ''
+    echo -e "
+     🚀 Welcome to the devenv for \e[32m$GREET\e[0m 🔥
+    make sure to run \e[34mdevenv up\e[0m in a seperate terminal to start postgresql
+    "
+  '';
 
   enterShell = ''
+    echo ""
+    git -v
+    go version
+    templ version | sed -e "s/^/Templ version: /;"
     hello
-    git --version
   '';
 
   # https://devenv.sh/tests/
@@ -39,8 +44,10 @@ in
   services = {
     postgres = {
       enable = true;
+      listen_addresses = "localhost";
       initialDatabases = [{ name = postgres_database; }];
     };
+    adminer.enable = true;
   };
 
   # https://devenv.sh/languages/

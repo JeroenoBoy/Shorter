@@ -2,8 +2,9 @@ package datastore
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/JeroenoBoy/Shorter/internal/models"
 	_ "github.com/lib/pq"
@@ -13,32 +14,45 @@ type PostgresOptions struct {
 	Database string
 	UserName string
 	Password string
-	Ip       string
+	Host     string
 	Port     int
-	UseSSL   bool
+	SSLMode  string
 }
 
 type postgresStore struct {
 	*sql.DB
 }
 
-func CreatePostgrsStore(options PostgresOptions) (Datastore, error) {
-	if len(options.Ip) == 0 {
-		options.Ip = "localhost"
-	}
-	if options.Port == 0 {
-		options.Port = 5432
+func NewPostgresStore(options PostgresOptions) (Datastore, error) {
+	if len(options.Host) == 0 {
+		return nil, errors.New("options.Host was empty in PostgresOptions")
 	}
 
-	var sslmode string
-	if options.UseSSL {
-		sslmode = "enabled"
-	} else {
-		sslmode = "disabled"
+	if len(options.Database) == 0 {
+		return nil, errors.New("options.Database was empty in PostgresOptions")
 	}
 
-	connStr := fmt.Sprint("postgres://%v:%v@%v:%v/%v?sslmode=%v", options.UserName, options.Password, options.Ip, strconv.Itoa(options.Port), options.Database, sslmode)
+	connOptions := make([]string, 0, 8)
+	connOptions = append(connOptions, "host="+options.Host)
+	connOptions = append(connOptions, "dbname="+options.Database)
 
+	if options.Port > 0 {
+		connOptions = append(connOptions, "port="+strconv.Itoa(options.Port))
+	}
+
+	if len(options.UserName) > 0 {
+		connOptions = append(connOptions, "username="+options.UserName)
+	}
+
+	if len(options.Password) > 0 {
+		connOptions = append(connOptions, "password="+options.Password)
+	}
+
+	if len(options.SSLMode) > 0 {
+		connOptions = append(connOptions, "sslmode="+options.SSLMode)
+	}
+
+	connStr := strings.Join(connOptions, " ")
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
