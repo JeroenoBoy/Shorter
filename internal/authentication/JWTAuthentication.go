@@ -12,7 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const tokenDuration = time.Minute
+const tokenDuration = time.Minute * 60
 
 type JWTAuthentication struct {
 	secret     []byte
@@ -48,7 +48,7 @@ func (j *JWTAuthentication) RetrieveClaims(token string) (JWTClaims, error) {
 
 func (j *JWTAuthentication) Sign(user models.User) (string, error) {
 	h := fnv.New32()
-	h.Write(user.Passwd)
+	h.Write([]byte(user.Passwd))
 
 	now := time.Now()
 
@@ -65,26 +65,43 @@ func (j *JWTAuthentication) Sign(user models.User) (string, error) {
 	return token.SignedString(j.secret)
 }
 
+func (j *JWTAuthentication) CreateCookie(user models.User) (http.Cookie, error) {
+	token, err := j.Sign(user)
+	if err != nil {
+		return http.Cookie{}, err
+	}
+
+	now := time.Now()
+	return http.Cookie{
+		Name:    j.cookieName,
+		Value:   token,
+		Expires: now.Add(tokenDuration),
+	}, nil
+}
+
 func (j *JWTAuthentication) MiddilewareProvideUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer next.ServeHTTP(w, r) // Always go to the next one, this middileware should never catch errors
 
 		cookie, err := r.Cookie(j.cookieName)
 		if err != nil {
+			next.ServeHTTP(w, r)
 			return
 		}
 
 		token := cookie.Value
 		claims, err := j.RetrieveClaims(token)
 		if err != nil {
+			next.ServeHTTP(w, r)
 			return
 		}
-		r.WithContext(context.WithValue(r.Context(), CtxKeyClaims, claims))
+		r = r.WithContext(context.WithValue(r.Context(), CtxKeyClaims, claims))
 
 		user, err := j.store.GetUser(claims.UserId)
 		if err != nil {
+			next.ServeHTTP(w, r)
 			return
 		}
-		r.WithContext(context.WithValue(r.Context(), CtxKeyUser, user))
+		r = r.WithContext(context.WithValue(r.Context(), CtxKeyUser, user))
+		next.ServeHTTP(w, r)
 	})
 }

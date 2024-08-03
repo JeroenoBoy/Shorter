@@ -15,8 +15,14 @@ in
   env.SHORTER_POSTGRES_PORT = postgres_port;
   env.SHORTER_POSTGRES_DATABASE = postgres_database;
   env.SHORTER_POSTGRES_SSLMODE = postgres_sslmode;
+  env.SHORTER_JWT_SECRET = "SuperSecureWow!";
 
-  packages = with pkgs; [ templ ];
+  packages = with pkgs; [
+    air
+    templ
+    tailwindcss
+    cmake
+  ];
 
   scripts.hello.exec = ''
     echo -e "

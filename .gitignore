@@ -18,6 +18,14 @@ devenv.local.nix
 *.so
 *.dylib
 
+#build folders
+/tmp/
+/out/
+
+#remove templ stuff
+/view/**/*.txt
+/view/**/*.go
+
 # Test binary, built with `go test -c`
 *.test
 

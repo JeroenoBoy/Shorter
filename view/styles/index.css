@@ -1,0 +1,28 @@
+@import "./tailwind.css";
+@import "./tyopgraphy.css";
+@import "./card.css";
+@import "./input.css";
+@import "./utility.css";
+
+html,
+body,
+.bg-pattern {
+    min-height: 100% !important;
+    height: 100%;
+}
+
+body {
+    @apply bg-slate-800 p-0 m-0
+}
+
+.bg-pattern {
+    @apply relative;
+}
+
+.bg-pattern::before {
+    @apply absolute w-full h-full opacity-5 bg-center bg-repeat min-h-full;
+    z-index: -1;
+    content: "";
+    background-image: url("/static/background.png");
+    background-size: 128px;
+}

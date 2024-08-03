@@ -42,7 +42,7 @@ func main() {
 
 	fmt.Printf("Listening on port %v 🚀\n", address)
 	println("Shorter is ready to roll!")
-    println("")
+	println("")
 
 	http.Serve(l, handler)
 }

@@ -1,0 +1,22 @@
+package layout
+
+templ Base() {
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shorter</title>
+    <link href="/static/index.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="bg-pattern">
+        { children... }
+    </div>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</body>
+
+</html>
+}

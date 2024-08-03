@@ -57,6 +57,6 @@ func MiddlewareHasPermissions(permissions models.Permissions) func(next http.Han
 }
 
 func GetUser(r *http.Request) (user models.User, ok bool) {
-	user, ok = r.Context().Value(CtxKeyClaims).(models.User)
+	user, ok = r.Context().Value(CtxKeyUser).(models.User)
 	return user, ok
 }

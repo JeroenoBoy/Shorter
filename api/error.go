@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type apiError struct {
+type ApiError struct {
 	StatusCode int    `json:"code"`
 	Message    string `json:"message"`
 }
@@ -17,19 +17,19 @@ var (
 	ErrorInternalServerError = NewApiError(http.StatusInternalServerError, "internal server error")
 )
 
-func NewApiError(code int, message string) apiError {
-	return apiError{
+func NewApiError(code int, message string) ApiError {
+	return ApiError{
 		StatusCode: code,
 		Message:    message,
 	}
 }
 
-func (err apiError) Error() string {
+func (err ApiError) Error() string {
 	return fmt.Sprintf("Code %v: %v", err.StatusCode, err.Message)
 }
 
 func WriteError(w http.ResponseWriter, err error) error {
-	if apiErr, ok := err.(apiError); ok {
+	if apiErr, ok := err.(ApiError); ok {
 		return WriteResponse(w, apiErr.StatusCode, apiErr)
 	} else {
 		WriteError(w, ErrorInternalServerError)

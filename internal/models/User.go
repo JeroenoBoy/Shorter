@@ -1,11 +1,22 @@
 package models
 
-type Password []byte
+import (
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
+type BcryptedPassword string
 type UserId int
 
 type User struct {
-	Id          UserId      `json:"id"`
-	Name        string      `json:"name"`
-	Passwd      Password    `json:"-"`
-	Permissions Permissions `json:"permissions"`
+	Id          UserId           `json:"id"`
+	Name        string           `json:"name"`
+	Passwd      BcryptedPassword `json:"-"`
+	Permissions Permissions      `json:"permissions"`
+	CreatedAt   time.Time        `json:"created_at"`
+}
+
+func (p BcryptedPassword) Compare(pw string) error {
+	return bcrypt.CompareHashAndPassword([]byte(p), []byte(pw))
 }

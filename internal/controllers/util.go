@@ -8,6 +8,7 @@ import (
 	"github.com/JeroenoBoy/Shorter/api"
 	"github.com/JeroenoBoy/Shorter/internal/authentication"
 	"github.com/JeroenoBoy/Shorter/internal/models"
+	"github.com/JeroenoBoy/Shorter/view"
 )
 
 type Handler interface {
@@ -20,11 +21,47 @@ func (f HandlerFunc) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
 	return f(w, r)
 }
 
-func WrapFunc(handler HandlerFunc) http.HandlerFunc {
-	return WrapHandler(handler)
+func WrapAjaxFunc(handler HandlerFunc) http.HandlerFunc {
+	return WrapAjaxHandler(handler)
 }
 
-func WrapHandler(handler Handler) http.HandlerFunc {
+func WrapAjaxHandler(handler Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := handler.ServeHTTP(w, r)
+		if err == nil {
+			return
+		}
+
+		err = view.WriteError(w, r.Context(), err)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func WrapPageFunc(handler HandlerFunc) http.HandlerFunc {
+	return WrapPageHandler(handler)
+}
+
+func WrapPageHandler(handler Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := handler.ServeHTTP(w, r)
+		if err == nil {
+			return
+		}
+
+		err = view.WriteErrorPage(w, r.Context(), err)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func WrapApiFunc(handler HandlerFunc) http.HandlerFunc {
+	return WrapApiHandler(handler)
+}
+
+func WrapApiHandler(handler Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := handler.ServeHTTP(w, r)
 		if err == nil {

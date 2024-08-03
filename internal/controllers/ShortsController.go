@@ -23,8 +23,8 @@ func NewShortsController(datastore datastore.Datastore) *shortsController {
 func (c *shortsController) Router() chi.Router {
 	r := chi.NewRouter()
 	r.Use(authentication.MiddlewareIsAuthenticated)
-	r.Get("/", authentication.MiddlewareHasPermissions(models.PermissionsManageShorts)(WrapFunc(c.getAllShorts)).ServeHTTP)
-	r.Get("/{userid}", WrapFunc(c.getShortsForUser))
+	r.Get("/", authentication.MiddlewareHasPermissions(models.PermissionsManageShorts)(WrapApiFunc(c.getAllShorts)).ServeHTTP)
+	r.Get("/{userid}", WrapApiFunc(c.getShortsForUser))
 	return r
 }
 
