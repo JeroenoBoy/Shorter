@@ -23,8 +23,8 @@ devenv.local.nix
 /out/
 
 #remove templ stuff
-/view/**/*.txt
-/view/**/*.go
+/view/**/*_templ.txt
+/view/**/*_templ.go
 
 # Test binary, built with `go test -c`
 *.test

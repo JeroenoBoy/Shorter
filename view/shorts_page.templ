@@ -1,0 +1,116 @@
+package view
+
+import "strconv"
+import "github.com/JeroenoBoy/Shorter/view/layout"
+import "github.com/JeroenoBoy/Shorter/internal/models"
+
+script copyText(text string) {
+navigator.clipboard.writeText(text)
+}
+
+templ ShortsPage(links []models.ShortLink) {
+@layout.Base() {
+<div class="center-h">
+    <header class="p-4 mt-16">
+        <h1>Lets shorten some links!</h1>
+    </header>
+    <div class="h-4"></div>
+    <div class="card">
+        <form class="flex gap-2" HX-Post="/d/shorts" hx-target="#short-table" hx-target-error="#new-short-errors"
+            hx-swap="beforeend">
+            <input class="w-32" type="text" name="link" placeholder="Optional id" maxlength="24" />
+            <input type="text" name="target" placeholder="New short link" maxlength="512" />
+            <button type="submit">+</button>
+        </form>
+        <div id="new-short-errors"></div>
+    </div>
+    <div class="h-4"></div>
+    @LinksTable(links)
+</div>
+}
+}
+
+templ LinksTable(links []models.ShortLink) {
+<div class="card">
+    <table id="short-table">
+        <tr>
+            <th class="text-left">Shortified</th>
+            <th class="text-left">Target</th>
+            <th class="text-right">Usages</th>
+            <th class="text-right">Last Used</th>
+            <th class="text-right">Actions</th>
+        </tr>
+        for _, short := range links {
+        @ShortRow(short)
+        }
+    </table>
+</div>
+}
+
+templ ShortRow(short models.ShortLink) {
+<tr id={ "shorts-" + short.Id.ToString() }>
+    <td class="tt-container" onclick={ copyText(short.Link) }>
+        <span class="tooltip">Copy to clipboard</span>
+        { short.Link }
+    </td>
+    <td>{ short.Target }</td>
+    <td class=" text-right">{ strconv.Itoa(short.Redirects) }</td>
+    <td class="text-right">
+        if short.LastUsed == nil {
+        Unused
+        } else {
+        { short.LastUsed.Format("2006-01-02") }
+        }
+    </td>
+    <td class="flex gap-1 justify-end">
+        <button onclick={ copyText(short.Link) }>
+            <span class="tooltip">Copy to clipboard</span>
+            @Icon("copy")
+        </button>
+        <button hx-get={ "/d/shorts/" + short.Id.ToString() + "/edit" } hx-target={ "#shorts-" + short.Id.ToString() }
+            hx-swap="outerHTML">
+            <span class="tooltip">Edit</span>
+            @Icon("pen-to-square")
+        </button>
+        <button hx-delete={ "/d/shorts/" + short.Id.ToString() }>
+            <span class="tooltip">Delete</span>
+            @Icon("trash")
+        </button>
+    </td>
+</tr>
+}
+
+templ ShortRowEdit(short models.ShortLink) {
+<tr id={ "shorts-" + short.Id.ToString() } class="edit">
+    <td>
+        <input class="w-32" name="link" value={ short.Link } maxlength="24" />
+    </td>
+    <td>
+        <input name="target" value={ short.Target } maxlength="512" />
+    </td>
+    <td class=" text-right">{ strconv.Itoa(short.Redirects) }</td>
+    <td class="text-right">
+        if short.LastUsed == nil {
+        Unused
+        } else {
+        { short.LastUsed.Format("2006-01-02") }
+        }
+    </td>
+    <td class="flex gap-1 justify-end">
+        <button hx-get={ "/d/shorts/" + short.Id.ToString() } hx-target={ "#shorts-" + short.Id.ToString() }
+            hx-swap="outerHTML">
+            <span class="tooltip">Cancel</span>
+            <span class="font-bold">X</span>
+        </button>
+        <button hx-patch={ "/d/shorts/" + short.Id.ToString() } hx-target={ "#shorts-" + short.Id.ToString() }
+            hx-swap="outerHTML">
+            <span class="tooltip">Save</span>
+            @Icon("check")
+        </button>
+        <button hx-delete={ "/d/shorts/" + short.Id.ToString() }>
+            <span class="tooltip">Delete</span>
+            @Icon("trash")
+        </button>
+    </td>
+</tr>
+}

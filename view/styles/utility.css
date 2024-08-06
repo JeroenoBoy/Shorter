@@ -1,0 +1,41 @@
+.center,
+.center-h,
+.center-v {
+    @apply flex flex-col;
+}
+
+.center,
+.center-h {
+    @apply w-full justify-center
+}
+
+.center, .center-v {
+    @apply h-full
+}
+
+.center>*,
+.center-h>* {
+    @apply mx-auto;
+}
+
+.center>*,
+.center-v>* {
+    @apply my-auto;
+}
+
+th,
+td {
+    @apply px-2 py-1
+}
+
+tr.edit {
+    @apply bg-slate-950 rounded-lg;
+}
+
+tr.edit td, tr.edit th {
+    @apply py-4
+}
+
+.fa-solid {
+    @apply pr-1
+}

@@ -1,0 +1,8 @@
+package view
+
+templ NotificationTemplate(notification Notification) {
+<div class={ "notification" , "notification-" + string(notification.Type) }>
+    <p class="notification-title">{ notification.Header }</p>
+    <p>{ notification.Body }</p>
+</div>
+}

@@ -13,6 +13,8 @@ type ApiError struct {
 var (
 	ErrorNotAuthenticated    = NewApiError(http.StatusUnauthorized, "you are not logged in")
 	ErrorBadRequest          = NewApiError(http.StatusBadRequest, "malformed request")
+    ErrorDuplicateKey = NewApiError(http.StatusConflict, "the id provided already exists")
+	ErrorResourceNotFound    = NewApiError(http.StatusNotFound, "resource could not be found")
 	ErrorNoPermissions       = NewApiError(http.StatusForbidden, "you are not permitted to execute this action")
 	ErrorInternalServerError = NewApiError(http.StatusInternalServerError, "internal server error")
 )

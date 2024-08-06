@@ -1,0 +1,23 @@
+#notifications-container {
+    @apply flex flex-col gap-2 absolute top-0 right-0 m-2
+}
+
+.notification {
+    @apply px-4 py-2 rounded-xl shadow
+}
+
+.notification-title {
+    @apply font-bold text-lg
+}
+
+.notification-error {
+    @apply bg-red-500
+}
+
+.notification-warning {
+    @apply bg-yellow-500
+}
+
+.notification-notify {
+    @apply bg-blue-500
+}

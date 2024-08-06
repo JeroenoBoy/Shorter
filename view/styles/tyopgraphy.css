@@ -1,0 +1,7 @@
+body {
+    @apply text-violet-50
+}
+
+h1 {
+    @apply text-4xl font-bold text-violet-400;
+}

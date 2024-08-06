@@ -126,24 +126,116 @@ func (s *postgresStore) DeleteUser(user models.UserId) error {
 	panic("not implemented")
 }
 
-func (s *postgresStore) CreateShort(models.ShortLink) error {
-	panic("not implemented")
+func (s *postgresStore) CreateLink(owner models.UserId, link *string, target string) (models.ShortLink, error) {
+	var empty models.ShortLink
+	var err error
+	var rows *sql.Rows
+
+	if link != nil && len(*link) > 0 {
+		rows, err = s.Query("INSERT INTO links (owner_id, link, target) VALUES ($1, $2, $3) RETURNING *", owner, *link, target)
+	} else {
+		rows, err = s.Query("INSERT INTO links (owner_id, target) VALUES ($1, $2) RETURNING *", owner, target)
+	}
+
+	if err != nil {
+		if strings.Contains(err.Error(), "pq: duplicate key") {
+			err = errors.Join(ErrorDuplicateKey, err)
+		}
+		return empty, errors.Join(ErrorInRequest, err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return empty, ErrorLinkNotFound
+	}
+	return linkFromQuery(rows)
 }
 
-func (s *postgresStore) DeleteShort(models.ShortId) error {
-	panic("not implemented")
+func (s *postgresStore) DeleteLink(id models.LinkId) error {
+	result, err := s.Exec("DELETE FROM users WHERE id = $1", id)
+	if err != nil {
+		return errors.Join(ErrorInRequest, err)
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return ErrorLinkNotFound
+	}
+	return nil
 }
 
-func (s *postgresStore) GetShort(id models.ShortId) (models.ShortLink, error) {
-	panic("not implemented")
+func (s *postgresStore) GetLink(id models.LinkId) (models.ShortLink, error) {
+	var empty models.ShortLink
+	rows, err := s.Query("SELECT * FROM links WHERE id = $1", id)
+	if err != nil {
+		return empty, errors.Join(ErrorInRequest, err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return empty, ErrorLinkNotFound
+	}
+
+	return linkFromQuery(rows)
 }
 
-func (s *postgresStore) GetUserShorts(userId models.UserId) ([]models.ShortLink, error) {
-	panic("not implemented")
+func (s *postgresStore) GetUserLinks(userId models.UserId) ([]models.ShortLink, error) {
+	rows, err := s.Query("SELECT * FROM links WHERE owner_id = $1", userId)
+	if err != nil {
+		return nil, errors.Join(ErrorInRequest, err)
+	}
+	defer rows.Close()
+
+	result := make([]models.ShortLink, 0, 32)
+	for rows.Next() {
+		link, err := linkFromQuery(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, link)
+	}
+
+	return result, nil
 }
 
-func (s *postgresStore) GetAllShorts() ([]models.ShortLink, error) {
-	panic("not implemented")
+func (s *postgresStore) GetAllLinks() ([]models.ShortLink, error) {
+	rows, err := s.Query("SELECT * FROM links")
+	if err != nil {
+		return nil, errors.Join(ErrorInRequest, err)
+	}
+	defer rows.Close()
+
+	result := make([]models.ShortLink, 0, 32)
+	for rows.Next() {
+		link, err := linkFromQuery(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, link)
+	}
+
+	return result, nil
+}
+
+func (s *postgresStore) GetLinkTargetAndIncreaseRedirects(link string) (string, error) {
+	rows, err := s.Query("UPDATE links SET redirects = redirects + 1, last_used = now() WHERE link = $1 RETURNING target", link)
+	if err != nil {
+		return "", errors.Join(ErrorInRequest, err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return "", ErrorLinkNotFound
+	}
+
+	var target string
+	err = rows.Scan(&target)
+	if err != nil {
+		return "", err
+	}
+	return target, nil
 }
 
 func (s *postgresStore) initdb() error {
@@ -158,8 +250,21 @@ func (s *postgresStore) initdb() error {
             name varchar(24) NOT NULL UNIQUE,
             password varchar(128) NOT NULL,
             permissions integer NOT NULL default 0,
-            createdAt Timestamp DEFAULT current_timestamp
+            created_at Timestamp NOT NULL DEFAULT current_timestamp
         );
+
+        CREATE TABLE IF NOT EXISTS links (
+            id serial PRIMARY KEY,
+            link varchar(24) UNIQUE NOT NULL DEFAULT substr(md5(random()::text), 1, 8),
+            owner_id int NOT NULL,
+            target varchar(512) NOT NULL,
+            redirects int NOT NULL DEFAULT 0,
+            created_at Timestamp NOT NULL DEFAULT current_timestamp,
+            last_used Timestamp DEFAULT null,
+            CONSTRAINT fk_owner_id FOREIGN KEY(owner_id) REFERENCES users(id)
+        );
+        
+        CREATE INDEX IF NOT EXISTS idx_links_link ON links (link);
 
         DO $$
         BEGIN
@@ -168,6 +273,7 @@ func (s *postgresStore) initdb() error {
             END IF;
         END $$
     `
+
 	sql = fmt.Sprintf(sql, defaultUsername, string(pw), models.PermissionsAdmin)
 	_, err = s.Exec(sql)
 	if err != nil {
@@ -181,4 +287,10 @@ func userFromQuery(rows *sql.Rows) (models.User, error) {
 	var user models.User
 	err := rows.Scan(&user.Id, &user.Name, &user.Passwd, &user.Permissions, &user.CreatedAt)
 	return user, err
+}
+
+func linkFromQuery(rows *sql.Rows) (models.ShortLink, error) {
+	var link models.ShortLink
+	err := rows.Scan(&link.Id, &link.Link, &link.Owner, &link.Target, &link.Redirects, &link.CreatedAt, &link.LastUsed)
+	return link, err
 }

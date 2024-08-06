@@ -1,0 +1,24 @@
+package view
+
+import "github.com/JeroenoBoy/Shorter/view/layout"
+
+templ LoginPage() {
+@layout.Base() {
+<div class="center">
+    <div class="card">
+        <h1 class="text-center mb-2">Shorter</h1>
+        <p>Please log in</p>
+        <form class="flex flex-col gap-2" hx-post="/d/login" hx-target-error="#error">
+            <div><input name="username" placeholder="Username" type="text" /></div>
+            <div><input name="password" placeholder="Password" type="password" /></div>
+            <button type="submit">Log in</button>
+        </form>
+        <div id="error"></div>
+    </div>
+</div>
+}
+}
+
+templ LoginFailedMessage(message string) {
+<p>{ message }</p>
+}

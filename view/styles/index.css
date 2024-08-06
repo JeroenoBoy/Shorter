@@ -1,5 +1,6 @@
 @import "./tailwind.css";
 @import "./tyopgraphy.css";
+@import "./notification.css";
 @import "./card.css";
 @import "./input.css";
 @import "./utility.css";
@@ -7,7 +8,7 @@
 html,
 body,
 .bg-pattern {
-    min-height: 100% !important;
+    min-height: fit-content !important;
     height: 100%;
 }
 

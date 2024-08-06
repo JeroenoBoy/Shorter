@@ -32,7 +32,7 @@ func WrapAjaxHandler(handler Handler) http.HandlerFunc {
 			return
 		}
 
-		err = view.WriteError(w, r.Context(), err)
+		err = view.ErrorNotification(w, r.Context(), err)
 		if err != nil {
 			panic(err)
 		}

@@ -1,0 +1,19 @@
+package view
+
+import "github.com/JeroenoBoy/Shorter/api"
+import "github.com/JeroenoBoy/Shorter/view/layout"
+import "strconv"
+
+templ ErrorPage(err error) {
+@layout.Base() {
+<div class="p-8">
+    if apiErr, ok := err.(api.ApiError); ok {
+    <h1>Whoops..! Error { strconv.Itoa(apiErr.StatusCode) }</h1>
+    <p>{ apiErr.Message }</p>
+    } else {
+    <h1>Whoops! Something went really wrong!</h1>
+    <p>internal server error!</p>
+    }
+</div>
+}
+}
