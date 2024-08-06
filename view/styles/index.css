@@ -8,8 +8,8 @@
 html,
 body,
 .bg-pattern {
-    min-height: fit-content !important;
-    height: 100%;
+    min-height: 100vh !important;
+    height: fit-content;
 }
 
 body {

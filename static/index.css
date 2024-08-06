@@ -1116,9 +1116,9 @@ tr.edit td, tr.edit th {
 html,
 body,
 .bg-pattern {
-  min-height: -moz-fit-content !important;
-  min-height: fit-content !important;
-  height: 100%;
+  min-height: 100vh !important;
+  height: -moz-fit-content;
+  height: fit-content;
 }
 
 body {
