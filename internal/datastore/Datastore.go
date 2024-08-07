@@ -2,6 +2,8 @@ package datastore
 
 import (
 	"errors"
+
+	"github.com/JeroenoBoy/Shorter/api"
 	"github.com/JeroenoBoy/Shorter/internal/models"
 )
 
@@ -13,11 +15,12 @@ type Datastore interface {
 	UpdateUser(user models.User) (models.User, error)
 	DeleteUser(user models.UserId) error
 
-	CreateLink(owner models.UserId, link *string, target string) (models.ShortLink, error)
-	DeleteLink(id models.LinkId) error
 	GetLink(id models.LinkId) (models.ShortLink, error)
-	GetUserLinks(owner models.UserId) ([]models.ShortLink, error)
 	GetAllLinks() ([]models.ShortLink, error)
+	GetUserLinks(owner models.UserId) ([]models.ShortLink, error)
+	CreateLink(owner models.UserId, link *string, target string) (models.ShortLink, error)
+	UpdateLink(id models.LinkId, updateReq api.UpdateLinkRequest) (models.ShortLink, error)
+	DeleteLink(id models.LinkId) error
 
 	GetLinkTargetAndIncreaseRedirects(link string) (string, error)
 }

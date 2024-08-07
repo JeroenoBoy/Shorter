@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/JeroenoBoy/Shorter/api"
 	"github.com/JeroenoBoy/Shorter/internal/models"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
@@ -126,46 +127,6 @@ func (s *postgresStore) DeleteUser(user models.UserId) error {
 	panic("not implemented")
 }
 
-func (s *postgresStore) CreateLink(owner models.UserId, link *string, target string) (models.ShortLink, error) {
-	var empty models.ShortLink
-	var err error
-	var rows *sql.Rows
-
-	if link != nil && len(*link) > 0 {
-		rows, err = s.Query("INSERT INTO links (owner_id, link, target) VALUES ($1, $2, $3) RETURNING *", owner, *link, target)
-	} else {
-		rows, err = s.Query("INSERT INTO links (owner_id, target) VALUES ($1, $2) RETURNING *", owner, target)
-	}
-
-	if err != nil {
-		if strings.Contains(err.Error(), "pq: duplicate key") {
-			err = errors.Join(ErrorDuplicateKey, err)
-		}
-		return empty, errors.Join(ErrorInRequest, err)
-	}
-	defer rows.Close()
-
-	if !rows.Next() {
-		return empty, ErrorLinkNotFound
-	}
-	return linkFromQuery(rows)
-}
-
-func (s *postgresStore) DeleteLink(id models.LinkId) error {
-	result, err := s.Exec("DELETE FROM users WHERE id = $1", id)
-	if err != nil {
-		return errors.Join(ErrorInRequest, err)
-	}
-	count, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count == 0 {
-		return ErrorLinkNotFound
-	}
-	return nil
-}
-
 func (s *postgresStore) GetLink(id models.LinkId) (models.ShortLink, error) {
 	var empty models.ShortLink
 	rows, err := s.Query("SELECT * FROM links WHERE id = $1", id)
@@ -217,6 +178,62 @@ func (s *postgresStore) GetAllLinks() ([]models.ShortLink, error) {
 	}
 
 	return result, nil
+}
+
+func (s *postgresStore) CreateLink(owner models.UserId, link *string, target string) (models.ShortLink, error) {
+	var empty models.ShortLink
+	var err error
+	var rows *sql.Rows
+
+	if link != nil && len(*link) > 0 {
+		rows, err = s.Query("INSERT INTO links (owner_id, link, target) VALUES ($1, $2, $3) RETURNING *", owner, *link, target)
+	} else {
+		rows, err = s.Query("INSERT INTO links (owner_id, target) VALUES ($1, $2) RETURNING *", owner, target)
+	}
+
+	if err != nil {
+		if strings.Contains(err.Error(), "pq: duplicate key") {
+			err = errors.Join(ErrorDuplicateKey, err)
+		}
+		return empty, errors.Join(ErrorInRequest, err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return empty, ErrorLinkNotFound
+	}
+	return linkFromQuery(rows)
+}
+
+func (s *postgresStore) UpdateLink(id models.LinkId, updateReq api.UpdateLinkRequest) (models.ShortLink, error) {
+	rows, err := s.Query("UPDATE links SET link = $1, target = $2 WHERE id = $3 RETURNING *", updateReq.Link, updateReq.Target, id)
+	if err != nil {
+		if strings.Contains(err.Error(), "pq: duplicate key") {
+			err = errors.Join(ErrorDuplicateKey, err)
+		}
+		return models.ShortLink{}, err
+	}
+
+	if !rows.Next() {
+		return models.ShortLink{}, ErrorLinkNotFound
+	}
+
+	return linkFromQuery(rows)
+}
+
+func (s *postgresStore) DeleteLink(id models.LinkId) error {
+	result, err := s.Exec("DELETE FROM links WHERE id = $1", id)
+	if err != nil {
+		return errors.Join(ErrorInRequest, err)
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return ErrorLinkNotFound
+	}
+	return nil
 }
 
 func (s *postgresStore) GetLinkTargetAndIncreaseRedirects(link string) (string, error) {

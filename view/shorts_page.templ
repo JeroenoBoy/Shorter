@@ -72,7 +72,8 @@ templ ShortRow(short models.ShortLink) {
             <span class="tooltip">Edit</span>
             @Icon("pen-to-square")
         </button>
-        <button hx-delete={ "/d/shorts/" + short.Id.ToString() }>
+        <button hx-delete={ "/d/shorts/" + short.Id.ToString() } hx-target={ "#shorts-" + short.Id.ToString() }
+            hx-swap="delete">
             <span class="tooltip">Delete</span>
             @Icon("trash")
         </button>
@@ -82,11 +83,14 @@ templ ShortRow(short models.ShortLink) {
 
 templ ShortRowEdit(short models.ShortLink) {
 <tr id={ "shorts-" + short.Id.ToString() } class="edit">
+    <form id={ "form-shorts-" + short.Id.ToString() } hx-put={ "/d/shorts/" + short.Id.ToString() }
+        hx-target={ "#shorts-" + short.Id.ToString() } hx-swap="outerHTML"></form>
     <td>
-        <input class="w-32" name="link" value={ short.Link } maxlength="24" />
+        <input class="w-32" name="link" value={ short.Link } maxlength="24" form={ "form-shorts-" + short.Id.ToString()
+            } />
     </td>
     <td>
-        <input name="target" value={ short.Target } maxlength="512" />
+        <input name="target" value={ short.Target } maxlength="512" form={ "form-shorts-" + short.Id.ToString() } />
     </td>
     <td class=" text-right">{ strconv.Itoa(short.Redirects) }</td>
     <td class="text-right">
@@ -102,12 +106,12 @@ templ ShortRowEdit(short models.ShortLink) {
             <span class="tooltip">Cancel</span>
             <span class="font-bold">X</span>
         </button>
-        <button hx-patch={ "/d/shorts/" + short.Id.ToString() } hx-target={ "#shorts-" + short.Id.ToString() }
-            hx-swap="outerHTML">
+        <button form={ "form-shorts-" + short.Id.ToString() } type="submit">
             <span class="tooltip">Save</span>
             @Icon("check")
         </button>
-        <button hx-delete={ "/d/shorts/" + short.Id.ToString() }>
+        <button hx-delete={ "/d/shorts/" + short.Id.ToString() } hx-target={ "#shorts-" + short.Id.ToString() }
+            hx-swap="delete">
             <span class="tooltip">Delete</span>
             @Icon("trash")
         </button>

@@ -6,24 +6,22 @@
 @import "./utility.css";
 
 html,
-body,
-.bg-pattern {
-    min-height: 100vh !important;
-    height: fit-content;
+body {
+    height: 100%;
 }
 
 body {
-    @apply bg-slate-800 p-0 m-0
+    @apply bg-slate-800 p-0 m-0 overflow-hidden
 }
 
-.bg-pattern {
-    @apply relative;
-}
-
-.bg-pattern::before {
+body::before {
     @apply absolute w-full h-full opacity-5 bg-center bg-repeat min-h-full;
     z-index: -1;
     content: "";
     background-image: url("/static/background.png");
     background-size: 128px;
+}
+
+.application-container {
+    @apply h-full relative overflow-y-scroll overflow-x-hidden;
 }

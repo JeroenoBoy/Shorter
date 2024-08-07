@@ -1,6 +1,9 @@
 input,
 input:hover,
-input:focus {
+input:focus,
+button,
+button:hover,
+button:focus {
     @apply outline-none shadow-none;
 }
 
@@ -14,7 +17,8 @@ input:hover {
     @apply bg-violet-800 border-violet-800;
 }
 
-input:focus {
+input:focus,
+button:focus {
     @apply bg-violet-900 border-violet-500;
 }
 
