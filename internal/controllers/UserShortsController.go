@@ -16,17 +16,17 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type shortsController struct {
+type userShortsController struct {
 	store datastore.Datastore
 }
 
-func NewShortController(store datastore.Datastore) *shortsController {
-	return &shortsController{
+func NewUserShortController(store datastore.Datastore) *userShortsController {
+	return &userShortsController{
 		store: store,
 	}
 }
 
-func (c *shortsController) Router() chi.Router {
+func (c *userShortsController) Router() chi.Router {
 	r := chi.NewRouter()
 	r.Post("/", WrapAjaxFunc(c.newLink))
 	r.Get("/{id}", WrapAjaxFunc(c.getLink))
@@ -36,7 +36,7 @@ func (c *shortsController) Router() chi.Router {
 	return r
 }
 
-func (c *shortsController) newLink(w http.ResponseWriter, r *http.Request) error {
+func (c *userShortsController) newLink(w http.ResponseWriter, r *http.Request) error {
 	user, ok := authentication.GetUser(r)
 	if !ok {
 		return api.ErrorNotAuthenticated
@@ -93,7 +93,7 @@ func (c *shortsController) newLink(w http.ResponseWriter, r *http.Request) error
 	return view.ShortRow(createdLn).Render(r.Context(), w)
 }
 
-func (c *shortsController) getLink(w http.ResponseWriter, r *http.Request) error {
+func (c *userShortsController) getLink(w http.ResponseWriter, r *http.Request) error {
 	_, link, err := getUserAndLink(c.store, r)
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func (c *shortsController) getLink(w http.ResponseWriter, r *http.Request) error
 	return view.ShortRow(link).Render(r.Context(), w)
 }
 
-func (c *shortsController) getEditForm(w http.ResponseWriter, r *http.Request) error {
+func (c *userShortsController) getEditForm(w http.ResponseWriter, r *http.Request) error {
 	_, link, err := getUserAndLink(c.store, r)
 	if err != nil {
 		return err
@@ -113,7 +113,7 @@ func (c *shortsController) getEditForm(w http.ResponseWriter, r *http.Request) e
 	return view.ShortRowEdit(link).Render(r.Context(), w)
 }
 
-func (c *shortsController) putLink(w http.ResponseWriter, r *http.Request) error {
+func (c *userShortsController) putLink(w http.ResponseWriter, r *http.Request) error {
 	_, link, err := getUserAndLink(c.store, r)
 	if err != nil {
 		return err
@@ -162,7 +162,7 @@ func (c *shortsController) putLink(w http.ResponseWriter, r *http.Request) error
 	return view.ShortRow(link).Render(r.Context(), w)
 }
 
-func (c *shortsController) deleteLink(w http.ResponseWriter, r *http.Request) error {
+func (c *userShortsController) deleteLink(w http.ResponseWriter, r *http.Request) error {
 	_, link, err := getUserAndLink(c.store, r)
 	if err != nil {
 		return err

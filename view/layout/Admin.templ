@@ -1,0 +1,21 @@
+package layout
+
+import "github.com/JeroenoBoy/Shorter/internal/models"
+
+type AdminPageType int
+
+const (
+AdminPageTypeNone AdminPageType = iota
+AdminPageTypeManageLinks
+AdminPageTypeManageUsers
+AdminPageTypeManageServer
+)
+
+templ Admin(adminPageType AdminPageType, user models.User) {
+@Base() {
+@AdminNavbar(adminPageType, user)
+@UserNavbar(NavbarTypeAdmin, user)
+<div class="h-24"></div>
+{ children... }
+}
+}

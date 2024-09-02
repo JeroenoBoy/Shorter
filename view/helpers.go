@@ -18,7 +18,4 @@ func WriteErrorPage(w http.ResponseWriter, ctx context.Context, err error) error
 }
 
 func HtmxRedirect(w http.ResponseWriter, url string) {
-	w.Header().Set("HX-Redirect", url)
-	w.WriteHeader(http.StatusOK)
-	w.Write(make([]byte, 0))
 }

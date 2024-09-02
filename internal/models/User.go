@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -19,4 +20,8 @@ type User struct {
 
 func (p BcryptedPassword) Compare(pw string) error {
 	return bcrypt.CompareHashAndPassword([]byte(p), []byte(pw))
+}
+
+func (u UserId) ToString() string {
+	return strconv.Itoa(int(u))
 }

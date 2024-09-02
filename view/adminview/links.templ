@@ -1,0 +1,59 @@
+package adminview
+
+import "github.com/JeroenoBoy/Shorter/internal/models"
+import "github.com/JeroenoBoy/Shorter/view/layout"
+import "strconv"
+import "github.com/JeroenoBoy/Shorter/view/components"
+import "net/url"
+
+templ LinksPage(user models.User, links models.PaginatedLinks) {
+@layout.Admin(layout.AdminPageTypeManageLinks, user) {
+<div class="center-h">
+    @LinksTable(links)
+</div>
+}
+}
+
+templ LinksTable(links models.PaginatedLinks) {
+<div class="card" id="short-table">
+    <table>
+        <tr>
+            <th class="text-left">Owner</th>
+            <th class="text-left">Shortified</th>
+            <th class="text-left">Target</th>
+            <th class="text-right">Usages</th>
+            <th class="text-right">Last Used</th>
+            <th class="text-right">Actions</th>
+        </tr>
+        for _, short := range links.Links {
+        @Link(short)
+        }
+    </table>
+    @components.PaginateBar(links.PageData, parseURL("/d/admin/links"), "#short-table", "outerHTML")
+</div>
+}
+
+templ Link(link models.ShortLink) {
+<tr>
+    <td>{ strconv.Itoa(int(link.Owner)) }</td>
+    <td>{ link.Link }</td>
+    <td>{ link.Target }</td>
+    <td>{ strconv.Itoa(link.Redirects) }</td>
+    <td class="text-right">
+        if link.LastUsed == nil {
+        Unused
+        } else {
+        { link.LastUsed.Format("2006-01-02") }
+        }
+    </td>
+    <td></td>
+</tr>
+}
+
+func parseURL(uri string) url.URL {
+u, err := url.Parse(uri)
+if err != nil {
+panic(u)
+}
+return *u
+}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -78,8 +79,44 @@ func NewPostgresStore(options PostgresOptions) (Datastore, error) {
 	return store, nil
 }
 
-func (s *postgresStore) GetUsers() ([]models.User, error) {
-	panic("not implemented")
+func (s *postgresStore) GetUsers(request models.PageRequest) (models.PaginatedUsers, error) {
+	var empty models.PaginatedUsers
+	if request.Page < 0 {
+		return empty, ErrorInPreperation
+	}
+	if request.ItemsPerPage < 1 {
+		return empty, ErrorInvalidItemCount
+	}
+
+	offset := request.Page * request.ItemsPerPage
+	rows, err := s.Query(`
+        SELECT u.*, total_users.total_users
+        FROM (
+            SELECT * FROM users OFFSET $1 LIMIT $2
+        ) u
+        CROSS JOIN (SELECT COUNT(*) AS total_users FROM users) total_users
+    `, offset, request.ItemsPerPage)
+
+	if err != nil {
+		return empty, errors.Join(ErrorInRequest, err)
+	}
+	defer rows.Close()
+
+	var paginatedUsers models.PaginatedUsers
+	paginatedUsers.Users = make([]models.User, 0, request.ItemsPerPage)
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.Id, &user.Name, &user.Passwd, &user.Permissions, &user.CreatedAt, &paginatedUsers.ItemCount)
+		if err != nil {
+			return empty, errors.Join(ErrorInScan, err)
+		}
+		paginatedUsers.Users = append(paginatedUsers.Users, user)
+	}
+
+	paginatedUsers.PageCount = int(math.Ceil(float64(paginatedUsers.ItemCount) / float64(request.ItemsPerPage)))
+	paginatedUsers.CurrentPage = request.Page
+
+	return paginatedUsers, nil
 }
 
 func (s *postgresStore) GetUser(id models.UserId) (models.User, error) {
@@ -161,23 +198,44 @@ func (s *postgresStore) GetUserLinks(userId models.UserId) ([]models.ShortLink, 
 	return result, nil
 }
 
-func (s *postgresStore) GetAllLinks() ([]models.ShortLink, error) {
-	rows, err := s.Query("SELECT * FROM links")
+func (s *postgresStore) GetAllLinks(request models.PageRequest) (models.PaginatedLinks, error) {
+	var empty models.PaginatedLinks
+	if request.Page < 1 {
+		return empty, ErrorInPreperation
+	}
+	if request.ItemsPerPage < 1 {
+		return empty, ErrorInvalidItemCount
+	}
+
+	offset := (request.Page - 1) * request.ItemsPerPage
+	rows, err := s.Query(`
+        SELECT u.*, total_links.total_links
+        FROM (
+            SELECT * FROM links OFFSET $1 LIMIT $2
+        ) u
+        CROSS JOIN (SELECT COUNT(*) AS total_links FROM links) total_links
+    `, offset, request.ItemsPerPage)
+
 	if err != nil {
-		return nil, errors.Join(ErrorInRequest, err)
+		return empty, errors.Join(ErrorInRequest, err)
 	}
 	defer rows.Close()
 
-	result := make([]models.ShortLink, 0, 32)
+	var paginatedLinks models.PaginatedLinks
+	paginatedLinks.Links = make([]models.ShortLink, 0, request.ItemsPerPage)
 	for rows.Next() {
-		link, err := linkFromQuery(rows)
+		var link models.ShortLink
+		err := rows.Scan(&link.Id, &link.Link, &link.Owner, &link.Target, &link.Redirects, &link.CreatedAt, &link.LastUsed, &paginatedLinks.ItemCount)
 		if err != nil {
-			return nil, err
+			return empty, errors.Join(ErrorInScan, err)
 		}
-		result = append(result, link)
+		paginatedLinks.Links = append(paginatedLinks.Links, link)
 	}
 
-	return result, nil
+	paginatedLinks.PageCount = int(math.Ceil(float64(paginatedLinks.ItemCount) / float64(request.ItemsPerPage)))
+	paginatedLinks.CurrentPage = request.Page
+
+	return paginatedLinks, nil
 }
 
 func (s *postgresStore) CreateLink(owner models.UserId, link *string, target string) (models.ShortLink, error) {
@@ -303,11 +361,19 @@ func (s *postgresStore) initdb() error {
 func userFromQuery(rows *sql.Rows) (models.User, error) {
 	var user models.User
 	err := rows.Scan(&user.Id, &user.Name, &user.Passwd, &user.Permissions, &user.CreatedAt)
-	return user, err
+	if err != nil {
+		return user, errors.Join(ErrorInScan, err)
+	} else {
+		return user, nil
+	}
 }
 
 func linkFromQuery(rows *sql.Rows) (models.ShortLink, error) {
 	var link models.ShortLink
 	err := rows.Scan(&link.Id, &link.Link, &link.Owner, &link.Target, &link.Redirects, &link.CreatedAt, &link.LastUsed)
-	return link, err
+	if err != nil {
+		return link, errors.Join(ErrorInScan, err)
+	} else {
+		return link, nil
+	}
 }

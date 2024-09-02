@@ -8,7 +8,7 @@ import (
 )
 
 type Datastore interface {
-	GetUsers() ([]models.User, error)
+	GetUsers(request models.PageRequest) (models.PaginatedUsers, error)
 	GetUser(id models.UserId) (models.User, error)
 	FindUserByName(name string) (models.User, error)
 	CreateUser(user models.User) (models.User, error)
@@ -16,7 +16,7 @@ type Datastore interface {
 	DeleteUser(user models.UserId) error
 
 	GetLink(id models.LinkId) (models.ShortLink, error)
-	GetAllLinks() ([]models.ShortLink, error)
+	GetAllLinks(request models.PageRequest) (models.PaginatedLinks, error)
 	GetUserLinks(owner models.UserId) ([]models.ShortLink, error)
 	CreateLink(owner models.UserId, link *string, target string) (models.ShortLink, error)
 	UpdateLink(id models.LinkId, updateReq api.UpdateLinkRequest) (models.ShortLink, error)
@@ -26,9 +26,13 @@ type Datastore interface {
 }
 
 var (
-	ErrorUserNotFound  = errors.New("user not found")
-	ErrorLinkNotFound  = errors.New("link not found")
-	ErrorDuplicateKey  = errors.New("duplicate key")
-	ErrorInPreperation = errors.New("error while preparing statement")
-	ErrorInRequest     = errors.New("error while trying to execute statement")
+	ErrorUserNotFound     = errors.New("user not found")
+	ErrorLinkNotFound     = errors.New("link not found")
+	ErrorNoDataReceived   = errors.New("no data received")
+	ErrorDuplicateKey     = errors.New("duplicate key")
+	ErrorInPreperation    = errors.New("error while preparing statement")
+	ErrorInRequest        = errors.New("error while trying to execute statement")
+	ErrorInScan           = errors.New("error while scanning")
+	ErrorInvalidPage      = errors.New("page number must be zero or greater")
+	ErrorInvalidItemCount = errors.New("must have atleast 1 item per page")
 )

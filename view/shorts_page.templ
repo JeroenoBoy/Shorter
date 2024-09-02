@@ -2,15 +2,17 @@ package view
 
 import "strconv"
 import "github.com/JeroenoBoy/Shorter/view/layout"
+import "github.com/JeroenoBoy/Shorter/view/components"
 import "github.com/JeroenoBoy/Shorter/internal/models"
 
 script copyText(text string) {
 navigator.clipboard.writeText(text)
 }
 
-templ ShortsPage(links []models.ShortLink) {
+templ ShortsPage(user models.User, links []models.ShortLink) {
 @layout.Base() {
-<div class="center-h">
+@layout.UserNavbar(layout.NavbarTypeUser, user)
+<div class="center-h relative">
     <header class="p-4 mt-16">
         <h1>Lets shorten some links!</h1>
     </header>
@@ -26,6 +28,7 @@ templ ShortsPage(links []models.ShortLink) {
     </div>
     <div class="h-4"></div>
     @LinksTable(links)
+    <div class="h-4"></div>
 </div>
 }
 }
@@ -65,17 +68,17 @@ templ ShortRow(short models.ShortLink) {
     <td class="flex gap-1 justify-end">
         <button onclick={ copyText(short.Link) }>
             <span class="tooltip">Copy to clipboard</span>
-            @Icon("copy")
+            @components.Icon("copy", true)
         </button>
         <button hx-get={ "/d/shorts/" + short.Id.ToString() + "/edit" } hx-target={ "#shorts-" + short.Id.ToString() }
             hx-swap="outerHTML">
             <span class="tooltip">Edit</span>
-            @Icon("pen-to-square")
+            @components.Icon("pen-to-square", true)
         </button>
         <button hx-delete={ "/d/shorts/" + short.Id.ToString() } hx-target={ "#shorts-" + short.Id.ToString() }
             hx-swap="delete">
             <span class="tooltip">Delete</span>
-            @Icon("trash")
+            @components.Icon("trash", true)
         </button>
     </td>
 </tr>
@@ -108,12 +111,12 @@ templ ShortRowEdit(short models.ShortLink) {
         </button>
         <button form={ "form-shorts-" + short.Id.ToString() } type="submit">
             <span class="tooltip">Save</span>
-            @Icon("check")
+            @components.Icon("check", true)
         </button>
         <button hx-delete={ "/d/shorts/" + short.Id.ToString() } hx-target={ "#shorts-" + short.Id.ToString() }
             hx-swap="delete">
             <span class="tooltip">Delete</span>
-            @Icon("trash")
+            @components.Icon("trash", true)
         </button>
     </td>
 </tr>

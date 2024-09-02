@@ -8,6 +8,7 @@ import (
 	"github.com/JeroenoBoy/Shorter/internal/authentication"
 	"github.com/JeroenoBoy/Shorter/internal/controllers"
 	"github.com/JeroenoBoy/Shorter/internal/datastore"
+	"github.com/JeroenoBoy/Shorter/internal/models"
 	"github.com/JeroenoBoy/Shorter/view"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -32,7 +33,7 @@ func NewWebserver(jwtAuth *authentication.JWTAuthentication, datastore datastore
 		r.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if _, ok := authentication.GetUser(r); !ok {
-					http.Redirect(w, r, "/d/login", http.StatusFound)
+					api.Redirect(w, r, "/d/login")
 				} else {
 					next.ServeHTTP(w, r)
 				}
@@ -40,11 +41,31 @@ func NewWebserver(jwtAuth *authentication.JWTAuthentication, datastore datastore
 		})
 
 		r.Get("/", controllers.WrapPageFunc(IndexPage(datastore)))
-		r.Mount("/shorts", controllers.NewShortController(datastore).Router())
+		r.Mount("/shorts", controllers.NewUserShortController(datastore).Router())
+
+		r.Route("/admin", func(r chi.Router) {
+			r.Use(func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					user, ok := authentication.GetUser(r)
+					if !ok {
+						api.Redirect(w, r, "/d")
+					} else if !user.Permissions.HasAny(models.PermissionsAnyDashboardAccess) {
+						api.Redirect(w, r, "/d")
+					} else {
+						next.ServeHTTP(w, r)
+					}
+				})
+			})
+
+			r.Get("/", controllers.WrapPageFunc(AdminPage(datastore)))
+			r.Get("/links", controllers.WrapPageFunc(AdminLinksPage(datastore)))
+			r.Mount("/users", controllers.NewUserController(datastore).Router())
+			r.Get("/settings", controllers.WrapPageFunc(AdminSettingsPage(datastore)))
+		})
 
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 			err := api.NewApiError(http.StatusNotFound, "Page could not be found :(")
-			if len(r.Header.Get("HX-Request")) > 0 {
+			if api.IsHTMXRequest(r) {
 				view.ErrorNotification(w, r.Context(), err)
 			} else {
 				view.WriteErrorPage(w, r.Context(), err)
@@ -52,7 +73,7 @@ func NewWebserver(jwtAuth *authentication.JWTAuthentication, datastore datastore
 		})
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
 			err := api.NewApiError(http.StatusMethodNotAllowed, "Api Error: Method Not Allowed")
-			if len(r.Header.Get("HX-Request")) > 0 {
+			if api.IsHTMXRequest(r) {
 				view.ErrorNotification(w, r.Context(), err)
 			} else {
 				view.WriteErrorPage(w, r.Context(), err)
@@ -78,7 +99,7 @@ func IndexPage(store datastore.Datastore) controllers.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		return view.ShortsPage(links).Render(r.Context(), w)
+		return view.ShortsPage(user, links).Render(r.Context(), w)
 	})
 }
 
@@ -98,6 +119,6 @@ func RedirectRoute(store datastore.Datastore) controllers.HandlerFunc {
 		}
 
 		http.Redirect(w, r, target, http.StatusFound)
-        return nil
+		return nil
 	})
 }

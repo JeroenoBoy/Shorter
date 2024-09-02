@@ -1,0 +1,24 @@
+.navbar {
+    @apply z-50 fixed top-0 my-2 mx-4 p-1;
+    @apply flex gap-2;
+    @apply text-sm;
+}
+
+.navbar-container {
+    @apply relative
+}
+
+.navbar-bg {
+    @apply bg-slate-900 rounded-lg shadow-2xl
+}
+
+.navbar-dd {
+    display: none;
+
+    @apply top-[-0.25em] right-[-0.5em] pt-6;
+    @apply bg-slate-900 shadow-lg rounded-lg;
+}
+
+.navbar-container:hover .navbar-dd {
+    display: block;
+}

@@ -1,0 +1,73 @@
+package layout
+
+import "github.com/JeroenoBoy/Shorter/internal/models"
+import "github.com/JeroenoBoy/Shorter/view/components"
+
+type NavbarType int
+
+const (
+NavbarTypeUser NavbarType = iota
+NavbarTypeAdmin
+)
+
+func addClassIf(class string, condition bool) string {
+if condition {
+return class
+} else {
+return ""
+}
+}
+
+templ UserNavbar(navbarType NavbarType, user models.User) {
+<nav class={ "navbar right-0 " }>
+    <div class={ addClassIf("navbar-container", user.Permissions.HasAny(models.PermissionsAnyDashboardAccess)) }>
+        <p class="text-right mx-1 absolute top-0 right-0 flex gap-1 z-10">
+            <span class="pr-0.5">
+                @components.Icon("user", true)
+            </span>
+            { user.Name }
+        </p>
+        if user.Permissions.HasAny(models.PermissionsAnyDashboardAccess) {
+        <div class="navbar-dd absolute text-nowrap">
+            <div class="flex flex-col gap-1 justify-center m-2">
+                <a class={ "btn btn-slim" , addClassIf("btn-gray", navbarType!=NavbarTypeUser) } href="/d">
+                    Your Links
+                </a>
+                <a class={ "btn btn-slim" , addClassIf("btn-gray", navbarType!=NavbarTypeAdmin) } href="/d/admin">
+                    Admin Panel
+                </a>
+            </div>
+        </div>
+        }
+    </div>
+</nav>
+}
+
+templ AdminNavbar(adminPageType AdminPageType, user models.User) {
+<nav class="navbar right-0 left-0 !p-0">
+    <div class="flex-1 flex-shrink"></div>
+    <div class="navbar-bg px-8 py-1 !rounded-full">
+        <div class="flex w-full gap-2 justify-center">
+            if user.Permissions.HasAll(models.PermissionsManageShorts) {
+            <a class={ "btn btn-slim" , addClassIf("btn-gray", adminPageType!=AdminPageTypeManageLinks) }
+                href="/d/admin/links">
+                Links
+            </a>
+            }
+            if user.Permissions.HasAll(models.PermissionsManageUsers) {
+            <a class={ "btn btn-slim" , addClassIf("btn-gray", adminPageType!=AdminPageTypeManageUsers) }
+                href="/d/admin/users">
+                Users
+            </a>
+            }
+            if user.Permissions.HasAll(models.PermissionsManageServer) {
+            <a class={ "btn btn-slim" , addClassIf("btn-gray", adminPageType!=AdminPageTypeManageServer) }
+                href="/d/admin/settings">
+                Settings
+            </a>
+            }
+        </div>
+    </div>
+    <div class="flex-1 flex-shrink"></div>
+</nav>
+}

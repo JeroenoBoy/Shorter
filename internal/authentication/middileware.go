@@ -47,7 +47,27 @@ func MiddlewareHasPermissions(permissions models.Permissions) func(next http.Han
 				return
 			}
 
-			if user.Permissions.HasAll(permissions) {
+			if !user.Permissions.HasAll(permissions) {
+				api.WriteError(w, api.ErrorNoPermissions)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func MiddlewareHasPermissionsOrRedirect(permissions models.Permissions, redirect string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user, ok := GetUser(r)
+			if !ok {
+				api.Redirect(w, r, redirect)
+				return
+			}
+
+			if !user.Permissions.HasAll(permissions) {
+				api.Redirect(w, r, redirect)
 				return
 			}
 

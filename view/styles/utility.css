@@ -32,10 +32,7 @@ tr.edit {
     @apply bg-slate-950 rounded-lg;
 }
 
-tr.edit td, tr.edit th {
+tr.edit td,
+tr.edit th {
     @apply py-4
-}
-
-.fa-solid {
-    @apply pr-1
 }

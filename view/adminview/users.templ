@@ -1,0 +1,45 @@
+package adminview
+
+import "github.com/JeroenoBoy/Shorter/internal/models"
+import "github.com/JeroenoBoy/Shorter/view/layout"
+import "github.com/JeroenoBoy/Shorter/view/components"
+
+templ UsersPage(user models.User, data models.PaginatedUsers) {
+@layout.Admin(layout.AdminPageTypeManageUsers, user) {
+<div class="center-h">
+    <div class="card">
+        @UserTable(data)
+    </div>
+</div>
+}
+}
+
+templ UserTable(users models.PaginatedUsers) {
+<table>
+    <tr>
+        <th class="text-left">Id</th>
+        <th class="w-64 text-left">Username</th>
+        <th class="text-right">Actions</th>
+    </tr>
+    for _, user := range users.Users {
+    @UserRow(user)
+    }
+</table>
+}
+
+templ UserRow(user models.User) {
+<tr>
+    <td>{ user.Id.ToString() }</td>
+    <td>{ user.Name }</td>
+    <td class="flex gap-1">
+        <a class="btn tt-container" href={ "/d/admin/links?user=" + templ.URL(user.Id.ToString()) }>
+            <span class="tooltip">View user links</span>
+            @components.Icon("arrow-up-right-from-square", true)
+        </a>
+        <a class="btn tt-container" href={ "/d/admin/users/" + templ.URL(user.Id.ToString()) }>
+            <span class="tooltip">Edit</span>
+            @components.Icon("pen-to-square", true)
+        </a>
+    </td>
+</tr>
+}

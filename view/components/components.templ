@@ -1,0 +1,45 @@
+package components
+
+import "github.com/JeroenoBoy/Shorter/internal/models"
+import "net/url"
+import "strconv"
+
+templ Icon(icon string, padding bool) {
+if padding {
+<i class={ "pr-1 fa-solid fa-" + icon }></i>
+} else {
+<i class={ "fa-solid fa-" + icon }></i>
+}
+}
+
+templ PaginateBar(data models.PageData, uri url.URL, target string, swap string) {
+<div class="center-h">
+    <div class="flex gap-1">
+        if data.CurrentPage == 1 {
+        <button disabled>
+            @Icon("angle-left", false)
+        </button>
+        } else {
+        <button hx-get={ withPage(uri, data.CurrentPage-1) } hx-target={ target } hx-swap={ swap }>
+            @Icon("angle-left", false)
+        </button>
+        }
+        if data.CurrentPage == data.PageCount {
+        <button disabled>
+            @Icon("angle-right", false)
+        </button>
+        } else {
+        <button hx-get={ withPage(uri, data.CurrentPage+1) } hx-target={ target } hx-swap={ swap }>
+            @Icon("angle-right", false)
+        </button>
+        }
+    </div>
+</div>
+}
+
+func withPage(uri url.URL, page int) string {
+q := uri.Query()
+q.Add("page", strconv.Itoa(page))
+uri.RawQuery = q.Encode()
+return uri.String()
+}

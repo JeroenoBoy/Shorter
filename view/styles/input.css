@@ -3,7 +3,10 @@ input:hover,
 input:focus,
 button,
 button:hover,
-button:focus {
+button:focus,
+.btn,
+.btn:hover,
+.btn:focus {
     @apply outline-none shadow-none;
 }
 
@@ -18,22 +21,45 @@ input:hover {
 }
 
 input:focus,
-button:focus {
+button:focus,
+.btn:focus {
     @apply bg-violet-900 border-violet-500;
 }
 
-button {
+button,
+.btn {
     @apply transition-all px-2 py-1 bg-violet-500 rounded-lg;
 }
 
-button:hover {
+button:hover,
+.btn:hover {
     @apply bg-violet-400
 }
 
-button:active {
+button:active,
+.btn:active {
     @apply bg-violet-300
 }
 
+.btn-slim {
+    @apply py-0.5 px-2
+}
+
+.btn-gray {
+    @apply bg-gray-500
+}
+
+.btn-gray:hover {
+    @apply bg-gray-400
+}
+
+.btn-gray:active {
+    @apply bg-gray-300
+}
+
+.btn-gray:focus {
+    @apply bg-gray-500 border-gray-300
+}
 
 button:has(.tooltip), .tt-container {
     @apply relative
@@ -56,4 +82,8 @@ button .tooltip:after,
 button:hover .tooltip,
 .tt-container:hover .tooltip {
     @apply visible opacity-100
+}
+
+button:disabled {
+    @apply opacity-50
 }

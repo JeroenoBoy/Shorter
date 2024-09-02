@@ -1,0 +1,9 @@
+package adminview
+
+import "github.com/JeroenoBoy/Shorter/internal/models"
+import "github.com/JeroenoBoy/Shorter/view/layout"
+
+templ SettingsPage(user models.User) {
+@layout.Admin(layout.AdminPageTypeManageServer, user) {
+}
+}
